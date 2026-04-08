@@ -1,31 +1,48 @@
-# Heapify AI Simulator / OpenEnv 1.1 
+# Heapify Autonomous RL System
 
 <div align="center">
   <br />
-  <img src="https://img.shields.io/badge/Status-Hackathon_Ready-success?style=for-the-badge" alt="Status" />
-  <img src="https://img.shields.io/badge/Python-3.9+-blue?style=for-the-badge&logo=python&logoColor=white" alt="Python" />
-  <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Python-3.9+-blue?style=flat-square" alt="Python" />
+  <img src="https://img.shields.io/badge/FastAPI-Framework-009688?style=flat-square" alt="FastAPI" />
+  <img src="https://img.shields.io/badge/Architecture-RL_Environment-black?style=flat-square" alt="Architecture" />
   <br />
-  <p><h3>A Complete RL Environment & Autonomous Agent Sandbox</h3></p>
+  <p><h3>A Deterministic Reinforcement Learning Environment for Language Agent Evaluation</h3></p>
 </div>
 
 ---
 
-## 🚀 Overview
+## Overview
 
-**Heapify** (OpenEnv v1.1) is a lightweight, strictly deterministic Reinforcement Learning environment designed for evaluating and visualizing Large Language Model (LLM) agents. 
+**Heapify** is a strictly deterministic Reinforcement Learning environment designed for evaluating and visualizing Large Language Model (LLM) agents. 
 
-Built entirely with standard libraries and served via **FastAPI**, this system provides a premium, zero-dependency HTML/JS/CSS frontend—crafted in a brutalist, monochrome IDE aesthetic—to visualize the RL pipeline in real-time.
+Built entirely with standard libraries and served via FastAPI, this system provides a highly responsive, zero-dependency HTML/JS/CSS frontend—crafted in a minimal IDE aesthetic—to visualize the RL pipeline in real-time.
 
-### Key Features
-* 🧠 **Dense Reward Tracking:** Granular scoring systems (+0.3 for correct reasoning, -0.5 to -1.0 logic loop penalties).
-* ⚡ **Auto-Agent Mode:** An asynchronous `agent_controller.py` that hooks seamlessly into Hugging Face/OpenAI standard inference endpoints. Let the LLM run on autopilot while you watch the logs.
-* 🛡️ **Episode Consistency:** Strict RL lifecycle enforcement. Task switching is disabled during active episodes to ensure uncorrupted evaluation.
-* 🖥️ **Brutalist IDE Interface:** High-contrast, hyper-responsive UI with auto-scrolling terminal logs, active step tracking, and dynamic action spaces.
+### Key Capabilities
+* **Dense Reward Tracking:** Granular scoring systems (+0.3 for correct reasoning, -0.5 to -1.0 logic loop penalties).
+* **Auto-Agent Mode:** An asynchronous controller that interfaces with standard LLM inference endpoints.
+* **Episode Consistency:** Strict RL lifecycle enforcement. Task switching is disabled during active episodes to ensure uncorrupted evaluation metrics.
+* **Minimalist Interface:** High-contrast, responsive UI with auto-scrolling execution logs, active step tracking, and dynamic action spaces.
 
 ---
 
-## 🛠️ Installation & Setup
+## System Architecture
+
+```mermaid
+graph TD;
+    Agent[LLM / Auto-Agent] -->|Action JSON| API[/FastAPI Controller/];
+    API --> Env[Base Environment Engine];
+    Env --> Grader{Task Graders};
+    Grader -- Email Triage --> Score(Dense Rewards / Loop Penalty);
+    Grader -- Code Review --> Score;
+    Grader -- Data Cleaning --> Score;
+    Score --> State((Internal State));
+    State -->|Observation + Reward| API;
+    API -->|Live Updates| Terminal[Frontend UI Dashboard];
+```
+
+---
+
+## Installation & Setup
 
 1. **Clone the Repository**
 ```bash
@@ -40,13 +57,12 @@ pip install -r requirements.txt
 ```
 
 3. **Set Environment Variables**
-Configure your LLM provider credentials securely (do not commit these!):
+Configure your provider credentials securely (do not commit these):
 ```bash
-export HF_TOKEN="your_hugging_face_token"
-export API_BASE_URL="https://api-inference.huggingface.co/v1"
-export MODEL_NAME="mistralai/Mistral-7B-Instruct-v0.3"
+export HF_TOKEN="your_token_here"
+export API_BASE_URL="api_url_here"
+export MODEL_NAME="model_string_here"
 ```
-*(On Windows, use `set` or configure a `.env` file).*
 
 4. **Launch the Server**
 ```bash
@@ -56,24 +72,16 @@ python server.py
 
 ---
 
-## 🎯 Task Environments
+## Task Ecosystem
 
-Current implemented environments inside the `env/graders/` directory:
-1. **Email Triage:** Classify incoming emails (`urgent`, `normal`, `spam`).
-2. **Code Review:** Detect syntax anomalies and deploy logical fixes.
-3. **Data Cleaning:** Handle database integrity (remove nulls, normalize metrics, fix schema typos).
+The environment currently supports three modular objective pipelines:
 
----
-
-## 💻 Architecture
-
-* `server.py`: FastAPI application serving REST endpoints and static assets.
-* `agent_controller.py`: Asynchronous task loop that handles LLM inferences.
-* `env/base_env.py`: The core state machine, observation builder, and dense reward governor.
-* `index.html`: The zero-dependency, pure vanilla JS front-end terminal.
+1. **Email Triage:** Classify incoming contexts into discrete labels.
+2. **Code Review:** Detect syntax anomalies and apply logical patch configurations.
+3. **Data Cleaning:** Handle database integrity constraints through normalized metrics and schema resolution.
 
 ---
 
 <div align="center">
-  <i>Built for performance. Designed for humans. Executed by AI.</i>
+  <i>Deterministic execution for autonomous agents.</i>
 </div>
