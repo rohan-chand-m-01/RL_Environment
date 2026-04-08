@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heapify — OpenEnv Studio</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #000000;
+    --white: #ffffff;
+    --grey-1: #f4f4f4;
+    --grey-2: #e0e0e0;
+    --grey-3: #a8a8a8;
+    --grey-4: #525252;
+    --grey-5: #161616;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  html { font-size: 13px; }
+
+  body {
+    background: var(--white);
+    color: var(--black);
+    font-family: var(--font-mono);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  header {
+    background: var(--black);
+    color: var(--white);
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 16px;
+    border-bottom: 1px solid #333;
+    flex-shrink: 0;
+  }
+
+  .header-dot {
+    width: 8px; height: 8px;
+    background: var(--white);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-weight: 600;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .badge-version {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--grey-3);
+    border: 1px solid #333;
+    padding: 2px 8px;
+    text-transform: uppercase;
+  }
+
+  .spacer { flex: 1; }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 16px;
+    border: 1px solid var(--white);
+    cursor: pointer;
+    background: transparent;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    transition: background 0.1s;
+  }
+
+  .btn:hover { background: var(--grey-4); }
+
+  .btn-accent {
+    background: var(--white);
+    color: var(--black);
+  }
+  .btn-accent:hover { background: var(--grey-2); }
+
+  .btn-danger {
+    background: transparent;
+    color: var(--white);
+    border-color: #ff4444;
+  }
+  .btn-danger:hover { background: #550000; }
+
+  .btn-action {
+    background: var(--black);
+    color: var(--white);
+  }
+  .btn-action:hover { background: var(--grey-4); }
+
+  /* ── LAYOUT ──────────────────────────────────────────── */
+  .layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* ── SIDEBAR ─────────────────────────────────────────── */
+  .sidebar {
+    width: 240px;
+    background: var(--grey-1);
+    border-right: 1px solid var(--grey-2);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-section {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--grey-2);
+  }
+
+  .sidebar-label {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--grey-3);
+    padding: 0 16px 8px;
+    display: block;
+    font-weight: 600;
+  }
+
+  .tree-item {
+    padding: 8px 16px;
+    color: var(--grey-4);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-left: 3px solid transparent;
+    transition: background 0.1s, color 0.1s;
+  }
+
+  .tree-item:hover { background: var(--grey-2); color: var(--black); }
+  .tree-item.active { 
+    background: var(--black); 
+    color: var(--white); 
+    border-left: 3px solid var(--white);
+  }
+
+  .score-card {
+    padding: 24px 16px;
+    text-align: left;
+    margin-top: auto;
+    border-top: 1px solid var(--grey-2);
+  }
+
+  .score-value {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--black);
+    margin-top: 8px;
+  }
+
+  /* ── MAIN AREA ────────────────────────────────────────── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--white);
+  }
+
+  .content-pane {
+    flex: 1;
+    padding: 32px;
+    overflow-y: auto;
+  }
+
+  .card {
+    background: var(--grey-1);
+    border: 1px solid var(--grey-2);
+    margin-bottom: 24px;
+  }
+
+  .card-header {
+    background: var(--grey-2);
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--grey-2);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--black);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  pre.json-payload {
+    font-size: 12px;
+    color: var(--black);
+    white-space: pre-wrap;
+    background: var(--white);
+    padding: 16px;
+    border: 1px solid var(--grey-2);
+  }
+
+  /* ── ACTION CONTROLS ────────────────────────────────── */
+  .action-row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    background: var(--white);
+    padding: 16px;
+    border: 1px solid var(--grey-2);
+  }
+
+  .input-field {
+    flex: 1;
+    background: var(--white);
+    border: 1px solid var(--grey-3);
+    color: var(--black);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 12px;
+  }
+  .input-field:focus { outline: none; border-color: var(--black); }
+
+  /* ── CONSOLE ─────────────────────────────────────────── */
+  .console-wrapper {
+    height: 250px;
+    background: var(--grey-5);
+    border-top: 1px solid var(--black);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .console-header {
+    padding: 4px 16px;
+    background: var(--black);
+    border-bottom: 1px solid #333;
+    font-size: 10px;
+    color: var(--grey-3);
+    font-family: var(--font-sans);
+    display: flex;
+    justify-content: space-between;
+    text-transform: uppercase;
+  }
+
+  .console {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    font-size: 11px;
+    color: var(--grey-2);
+  }
+
+  .log-line { margin-bottom: 4px; display: flex; gap: 8px; }
+  .log-prefix { width: 70px; flex-shrink: 0; }
+  .log-content { flex: 1; word-break: break-all; }
+  
+  .log-start .log-prefix { color: #87d7ff; }
+  .log-step .log-prefix { color: #87ffaf; }
+  .log-end .log-prefix { color: #ffd787; }
+  .log-err .log-prefix { color: #ff8787; }
+  
+  .badge {
+    display: inline-block;
+    padding: 0 4px;
+    border: 1px solid var(--white);
+    font-size: 10px;
+    margin: 0 4px;
+    color: var(--black);
+    background: var(--white);
+  }
+  .badge-reward { background: #87ffaf; border-color: #87ffaf; color: #000; }
+  .badge-penalty { background: #ff8787; border-color: #ff8787; color: #000; }
+
+  /* ── UTILS ───────────────────────────────────────────── */
+  .spinner {
+    display: none;
+    width: 12px; height: 12px;
+    border: 2px solid var(--black);
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+
+  .fade-in { animation: fadeIn 0.2s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-dot"></div>
+  <div class="logo-text">Heapify</div>
+  <div class="badge-version">OpenEnv v1.1</div>
+  <div class="spacer"></div>
+  
+  <button id="btn-auto-agent" class="btn btn-accent" onclick="startAutoAgent()">
+    [Run Auto-Agent]
+    <div class="spinner" id="agent-spinner"></div>
+  </button>
+  <button id="btn-reset" class="btn btn-danger" onclick="resetApp()">
+    [Reset Env]
+  </button>
+</header>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Active Episode</div>
+      <div id="nav-email" class="tree-item" onclick="handleTabClick('email_triage')">
+        <span style="font-size: 10px;">⬡</span> Email Triage
+      </div>
+      <div id="nav-code" class="tree-item" onclick="handleTabClick('code_review')">
+        <span style="font-size: 10px;">⬡</span> Code Review
+      </div>
+      <div id="nav-data" class="tree-item" onclick="handleTabClick('data_cleaning')">
+        <span style="font-size: 10px;">⬡</span> Data Cleaning
+      </div>
+    </div>
+    
+    <div class="sidebar-section" style="padding: 16px 16px;">
+      <div class="sidebar-label" style="padding:0; margin-bottom: 8px;">Environment Details</div>
+      <div style="font-size: 11px; color: var(--grey-4); line-height: 1.8;">
+        <div>Step Limit: <span style="color:var(--black); font-weight: 600;">50</span></div>
+        <div>RL Model: <span style="color:var(--black); font-weight: 600;">Dense</span></div>
+      </div>
+    </div>
+
+    <div class="score-card">
+      <div class="sidebar-label" style="padding:0">Cumulative Reward</div>
+      <div id="score-display" class="score-value">0.00</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="content-pane" id="content-area">
+      <!-- Dynamic UI -->
+    </div>
+
+    <!-- CONSOLE -->
+    <div class="console-wrapper">
+      <div class="console-header">
+        <span>Terminal Log</span>
+        <span>Step <strong id="status-step" style="color:var(--white);">0</strong> / 50</span>
+      </div>
+      <div class="console" id="console"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let state = null;
+let isAutoAgentRunning = false;
+const consoleEl = document.getElementById('console');
+const contentArea = document.getElementById('content-area');
+const scoreDisplay = document.getElementById('score-display');
+const statusStep = document.getElementById('status-step');
+const spinner = document.getElementById('agent-spinner');
+
+function logTerminal(prefix, content, type='step') {
+  const div = document.createElement('div');
+  div.className = `log-line log-${type}`;
+  div.innerHTML = `<span class="log-prefix">${prefix}</span><span class="log-content">${content}</span>`;
+  consoleEl.appendChild(div);
+  consoleEl.scrollTop = consoleEl.scrollHeight;
+}
+
+function renderRewardBadge(amount) {
+  const num = parseFloat(amount);
+  if (num > 0) return `<span class="badge badge-reward">+${num.toFixed(2)}</span>`;
+  if (num < 0) return `<span class="badge badge-penalty">${num.toFixed(2)}</span>`;
+  return `<span class="badge">0.00</span>`;
+}
+
+async function apiCall(endpoint, payload=null, method=null) {
+  try {
+    const opts = { method: method || (payload ? 'POST' : 'GET') };
+    if (payload) {
+      opts.headers = { 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(payload);
+    } else if (opts.method === 'POST') {
+        // fetch compatibility
+    }
+    const res = await fetch('/api/' + endpoint, opts);
+    if (!res.ok) throw new Error(await res.text());
+    return await res.json();
+  } catch(e) {
+    logTerminal('[ERROR]', e.message, 'err');
+    return null;
+  }
+}
+
+function updateNav() {
+  document.querySelectorAll('.tree-item').forEach(el => el.classList.remove('active'));
+  if (!state) return;
+  const taskId = state.task_type;
+  if (taskId === 'email_triage') document.getElementById('nav-email').classList.add('active');
+  if (taskId === 'code_review') document.getElementById('nav-code').classList.add('active');
+  if (taskId === 'data_cleaning') document.getElementById('nav-data').classList.add('active');
+}
+
+function handleTabClick(taskName) {
+  if (!state) return;
+  if (state.task_type !== taskName) {
+    if (!state.done) {
+        logTerminal('[WARN]', `Finish the current '${state.task_type}' sequence before switching.`, 'err');
+    }
+  }
+}
+
+function renderUI() {
+  if (!state) return;
+  
+  scoreDisplay.textContent = state.metadata?.cumulative_reward.toFixed(2) || '0.00';
+  statusStep.textContent = state.step;
+  updateNav();
+
+  if (state.done) {
+    contentArea.innerHTML = `
+      <div class="card fade-in">
+        <div class="card-header">Episode Completed</div>
+        <div class="card-body" style="padding: 48px 24px;">
+          <h2 style="color: var(--black); font-size: 20px; font-weight: 600; margin-bottom: 8px;">Simulation Finished</h2>
+          <p style="color: var(--grey-4);">Total Accumulated Reward: ${scoreDisplay.textContent}</p>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  // Render specific UI
+  let html = `
+    <div class="card fade-in">
+      <div class="card-header">
+        <span>Observation Payload</span>
+        <span style="color:var(--grey-4);">Step_ID: ${state.task_id}</span>
+      </div>
+      <div class="card-body">
+        <pre class="json-payload">${JSON.stringify(state.content, null, 2)}</pre>
+      </div>
+    </div>
+  `;
+
+  if (state.error_feedback) {
+    html += `<div style="color:#d32f2f; padding: 12px; background: #ffebee; border: 1px solid #ffcdd2; margin-bottom: 24px;">
+      <strong>Environment Error:</strong> ${state.error_feedback}
+    </div>`;
+  }
+
+  html += `<div class="card fade-in"><div class="card-header">Action Space</div><div class="action-row" id="action-panel"></div></div>`;
+  contentArea.innerHTML = html;
+
+  const panel = document.getElementById('action-panel');
+  if (state.task_type === 'email_triage') {
+    panel.innerHTML = `
+      <select id="act-label" class="input-field" style="max-width: 200px;">
+        <option value="urgent">Urgent</option>
+        <option value="normal">Normal</option>
+        <option value="spam">Spam</option>
+      </select>
+      <button class="btn btn-action" onclick="sendAction('classify', {label: document.getElementById('act-label').value, reasoning: 'Manual user override.'})">Commit Label</button>
+    `;
+  } else if (state.task_type === 'code_review') {
+    panel.innerHTML = `
+      <input type="text" class="input-field" id="act-desc" placeholder="Bug description or Fix details...">
+      <button class="btn btn-action" onclick="sendAction('detect_bug', {description: document.getElementById('act-desc').value, reasoning: 'Identified syntax anomaly.'})">Flag Bug</button>
+      <button class="btn btn-action" style="background:var(--white); color:var(--black); border:1px solid var(--black);" onclick="sendAction('suggest_fix', {fix: document.getElementById('act-desc').value, reasoning: 'Proposing logical replacement.'})">Submit Fix</button>
+    `;
+  } else if (state.task_type === 'data_cleaning') {
+    panel.innerHTML = `
+      <select id="act-trans" class="input-field" style="max-width: 300px;">
+        <option value="remove_null">Transform: Remove Nulls</option>
+        <option value="normalize">Transform: Normalize Metrics</option>
+        <option value="fix_schema">Transform: Fix Schema Typo</option>
+      </select>
+      <button class="btn btn-action" onclick="sendAction(document.getElementById('act-trans').value)">Apply Policy</button>
+    `;
+  }
+}
+
+async function sendAction(type, payload={}) {
+  const action = { action_type: type, payload: payload };
+  const res = await apiCall('step', action);
+  if (res) {
+    const r = res.reward.value;
+    const badge = renderRewardBadge(r);
+    const d = res.done;
+    const err = res.observation.error_feedback ? ` <span style="color:#ff8787">[ERR: ${res.observation.error_feedback}]</span>` : "";
+    logTerminal('[STEP]', `step=${res.observation.step} action=${type} reward=${badge} done=${d}${err}`);
+    if (res.done && !isAutoAgentRunning) logTerminal('[END]', 'Episode reached terminal state.', 'end');
+    state = res.observation;
+    renderUI();
+  }
+}
+
+async function startAutoAgent() {
+  if (isAutoAgentRunning || (state && state.done)) return;
+  isAutoAgentRunning = true;
+  spinner.style.display = 'block';
+  logTerminal('[SYSTEM]', 'Initiating Auto-Agent Loop via Subprocess...', 'start');
+  
+  const res = await apiCall('auto_agent/start', null, 'POST');
+  if (res && res.status === 'started') {
+    pollAgentStatus();
+  } else {
+    isAutoAgentRunning = false;
+    spinner.style.display = 'none';
+  }
+}
+
+async function pollAgentStatus() {
+  const interval = setInterval(async () => {
+    const fresh_state = await apiCall('state', null, 'GET');
+    if (fresh_state) {
+      if (fresh_state.step > (state ? state.step : 0)) {
+         logTerminal('[AGENT]', `Synchronized external step ${fresh_state.step}. View Observation payload for details.`);
+      }
+      
+      scoreDisplay.textContent = fresh_state.cumulative_reward.toFixed(2);
+      statusStep.textContent = fresh_state.step;
+      
+      if (fresh_state.done) {
+        clearInterval(interval);
+        isAutoAgentRunning = false;
+        spinner.style.display = 'none';
+        logTerminal('[END]', 'Agent reached terminal state automatically.', 'end');
+        
+        const final_obs = await apiCall('current_obs', null, 'GET');
+        if (final_obs) { state = final_obs; renderUI(); }
+      } else {
+         const current_obs = await apiCall('current_obs', null, 'GET');
+         if (current_obs) { state = current_obs; renderUI(); }
+      }
+    }
+  }, 1000);
+}
+
+async function resetApp() {
+  consoleEl.innerHTML = '';
+  isAutoAgentRunning = false;
+  spinner.style.display = 'none';
+  const obs = await apiCall('reset', null, 'POST');
+  if (obs) {
+    logTerminal('[START]', `task_start=${obs.task_type} env=heapify_v1 agent_mode=manual`, 'start');
+    state = obs;
+    renderUI();
+  }
+}
+
+// Init
+resetApp();
+</script>
+</body>
+</html>

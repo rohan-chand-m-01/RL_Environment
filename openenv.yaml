@@ -1,0 +1,113 @@
+name: ai_workplace_simulator
+version: "1.0.0"
+description: >
+  A reinforcement learning environment simulating real-world workplace tasks:
+  email triage, code review, and data cleaning. Designed for evaluating and
+  training LLM agents on multi-step reasoning and decision-making.
+
+tags:
+  - openenv
+  - workplace
+  - llm-evaluation
+  - reinforcement-learning
+
+interface:
+  reset: "env.reset() -> Observation"
+  step: "env.step(action: Action) -> Tuple[Observation, Reward, bool, dict]"
+  state: "env.state() -> dict"
+
+server:
+  framework: fastapi
+  entrypoint: server.py
+  host: 0.0.0.0
+  port: 8000
+  routes:
+    - POST /reset
+    - POST /step
+    - GET  /state
+
+tasks:
+  - id: email_triage
+    difficulty: easy
+    description: Classify incoming emails as urgent, normal, or spam.
+    num_items: 6
+    observation_space:
+      type: dict
+      keys:
+        - email_id: string
+        - subject: string
+        - body: string
+        - email_index: integer
+        - total_emails: integer
+    action_space:
+      type: discrete
+      actions:
+        - action_type: classify
+          payload:
+            label: "urgent | normal | spam"
+
+  - id: code_review
+    difficulty: medium
+    description: Detect bugs and suggest fixes in Python code snippets.
+    num_items: 3
+    observation_space:
+      type: dict
+      keys:
+        - sample_id: string
+        - language: string
+        - code: string
+        - difficulty: string
+        - bug_detected: boolean
+        - fix_suggested: boolean
+    action_space:
+      type: discrete
+      actions:
+        - action_type: detect_bug
+          payload:
+            description: string
+        - action_type: suggest_fix
+          payload:
+            fix: string
+
+  - id: data_cleaning
+    difficulty: hard
+    description: Clean messy datasets via multi-step transformations.
+    num_items: 2
+    observation_space:
+      type: dict
+      keys:
+        - dataset_id: string
+        - required_keys: "list[string]"
+        - rows: "list[dict]"
+        - numeric_fields: "list[string]"
+        - required_steps: "list[string]"
+        - completed_steps: "list[string]"
+    action_space:
+      type: discrete
+      actions:
+        - action_type: remove_null
+        - action_type: normalize
+        - action_type: fix_schema
+
+reward:
+  range: [-1.0, 1.0]
+  dense: true
+  signals:
+    correct_step: +0.5
+    final_success: +1.0
+    wrong_action: -0.3
+    loop_detection: -1.0
+    step_limit_exceeded: -1.0
+
+observation:
+  includes_action_history: true
+  includes_error_feedback: true
+  includes_done_flag: true
+
+max_steps: 50
+
+baseline:
+  agent: rule-based
+  score: 11.04
+  steps: 18
+  success: true
